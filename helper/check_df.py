@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import scipy.stats as stats
+
 
 def missing_data(data):
     total = data.isnull().sum()
@@ -46,3 +48,23 @@ def unique_values(data):
         uniques.append(unique)
     tt["Uniques"] = uniques
     return np.transpose(tt)
+
+
+def anova(df: pd.DataFrame, group_names: list[str], target: str):
+    """
+    ANNOVA(分散分析)
+        p値が 0.05 未満 → 「偶然ではなく、統計的に有意な差がある」と判断
+        本当に無関係だったら、こんな差が偶然に起きる確率はほぼゼロ
+        説明変数と目的変数の間には非常に強い関係があることを統計的に裏付けている
+        F値が 1 に近い → グループ間の差はほぼなく、ばらつきは同じ。
+        F値が 大きい（今回: 45.48） → グループ間の平均の差が、偶然では説明できないほど大きい"""
+    for group_name in group_names:
+        # カテゴリごとに数値のリストを作る
+        groups = [group[target].values for _, group in df.groupby(group_name)]
+
+        # 一元配置分散分析（ANOVA）
+        f_stat, p_value = stats.f_oneway(*groups)
+        print(group_name)
+        print("F値:", f_stat)
+        print("p値:", p_value)
+        print()
